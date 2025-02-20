@@ -33,6 +33,11 @@ const Dashboard = () => {
       return;
     }
 
+    const handleUnauthorizedError = async () => {
+      await logout();
+      navigate("/login");
+    };
+
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true);
@@ -40,13 +45,20 @@ const Dashboard = () => {
         setDashboardData(data);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
+        
+        // Check if error is unauthorized (401)
+        if (error.response?.status === 401 || 
+            error.message?.toLowerCase().includes('unauthorized')) {
+          await handleUnauthorizedError();
+          return;
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [token, timeframe, navigate]);
+  }, [token, timeframe, navigate, logout]);
 
   if (isLoading || !dashboardData) {
     return (

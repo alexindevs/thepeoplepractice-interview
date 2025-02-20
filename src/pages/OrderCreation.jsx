@@ -15,6 +15,12 @@ const OrderCreation = () => {
     orderDate: '',
   });
 
+  const handleUnauthorizedError = async () => {
+    await logout();
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -33,8 +39,16 @@ const OrderCreation = () => {
       });
       navigate('/orders');
     } catch (error) {
-      alert('Failed to create order. Please try again.');
       console.error('Order submission failed:', error);
+      
+      // Check for unauthorized error
+      if (error.response?.status === 401 || 
+          error.message?.toLowerCase().includes('unauthorized')) {
+        await handleUnauthorizedError();
+        return;
+      }
+      
+      alert('Failed to create order. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +125,11 @@ const OrderCreation = () => {
             required
             className="w-full p-2 border rounded-md"
           />
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md" disabled={isLoading}>
+          <button 
+            type="submit" 
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-400" 
+            disabled={isLoading}
+          >
             {isLoading ? 'Creating order...' : 'Create Order'}
           </button>
         </form>
